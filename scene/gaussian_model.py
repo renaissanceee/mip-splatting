@@ -125,15 +125,17 @@ class GaussianModel:
     @property
     def get_opacity_with_3D_filter(self):
         opacity = self.opacity_activation(self._opacity)
+
         # apply 3D filter
-        scales = self.get_scaling
-        
+        scales = self.get_scaling # vector s [182686, 3]
+
         scales_square = torch.square(scales)
-        det1 = scales_square.prod(dim=1)
+        det1 = scales_square.prod(dim=1)# [182686]
         
         scales_after_square = scales_square + torch.square(self.filter_3D) 
-        det2 = scales_after_square.prod(dim=1) 
+        det2 = scales_after_square.prod(dim=1) # [182686]
         coef = torch.sqrt(det1 / det2)
+
         return opacity * coef[..., None]
 
     def get_covariance(self, scaling_modifier = 1):
@@ -144,14 +146,14 @@ class GaussianModel:
         print("Computing 3D filter")
         #TODO consider focal length and image width
         xyz = self.get_xyz
-        distance = torch.ones((xyz.shape[0]), device=xyz.device) * 100000.0
-        valid_points = torch.zeros((xyz.shape[0]), device=xyz.device, dtype=torch.bool)
+        distance = torch.ones((xyz.shape[0]), device=xyz.device) * 100000.0 # H-axis [182686, 1]
+        valid_points = torch.zeros((xyz.shape[0]), device=xyz.device, dtype=torch.bool) # depth>0.2, in-screen
         
-        # we should use the focal length of the highest resolution camera
+        # we should use the focal length of the highest resolution camera -> min focal_length
         focal_length = 0.
         for camera in cameras:
 
-            # transform points to camera space
+            # ------> camera space
             R = torch.tensor(camera.R, device=xyz.device, dtype=torch.float32)
             T = torch.tensor(camera.T, device=xyz.device, dtype=torch.float32)
              # R is stored transposed due to 'glm' in CUDA code so we don't neet transopse here
@@ -159,8 +161,8 @@ class GaussianModel:
             
             xyz_to_cam = torch.norm(xyz_cam, dim=1)
             
-            # project to screen space
-            valid_depth = xyz_cam[:, 2] > 0.2
+            # ------> screen space
+            valid_depth = xyz_cam[:, 2] > 0.2 # depth>0.2
             
             
             x, y, z = xyz_cam[:, 0], xyz_cam[:, 1], xyz_cam[:, 2]
@@ -173,22 +175,23 @@ class GaussianModel:
             
             # use similar tangent space filtering as in the paper
             in_screen = torch.logical_and(torch.logical_and(x >= -0.15 * camera.image_width, x <= camera.image_width * 1.15), torch.logical_and(y >= -0.15 * camera.image_height, y <= 1.15 * camera.image_height))
-            
+            # x,y in (-0.15, 1.15)
         
             valid = torch.logical_and(valid_depth, in_screen)
             
             # distance[valid] = torch.min(distance[valid], xyz_to_cam[valid])
-            distance[valid] = torch.min(distance[valid], z[valid])
+            distance[valid] = torch.min(distance[valid], z[valid])# point to camera最小距离
             valid_points = torch.logical_or(valid_points, valid)
             if focal_length < camera.focal_x:
                 focal_length = camera.focal_x
         
-        distance[~valid_points] = distance[valid_points].max()
+        distance[~valid_points] = distance[valid_points].max()# 非有效 ->max_valid_point
         
         #TODO remove hard coded value
         #TODO box to gaussian transform
         filter_3D = distance / focal_length * (0.2 ** 0.5)
-        self.filter_3D = filter_3D[..., None]
+        self.filter_3D = filter_3D[..., None] #[182686, 1]       ->后面用于调整opacity scale
+
         
     def oneupSHdegree(self):
         if self.active_sh_degree < self.max_sh_degree:
@@ -307,8 +310,8 @@ class GaussianModel:
 
     def reset_opacity(self):
         # reset opacity to by considering 3D filter
-        current_opacity_with_filter = self.get_opacity_with_3D_filter
-        opacities_new = torch.min(current_opacity_with_filter, torch.ones_like(current_opacity_with_filter)*0.01)
+        current_opacity_with_filter = self.get_opacity_with_3D_filter # opacity->filter
+        opacities_new = torch.min(current_opacity_with_filter, torch.ones_like(current_opacity_with_filter)*0.01) # <0.01
         
         # apply 3D filter
         scales = self.get_scaling

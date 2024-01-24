@@ -1,0 +1,22 @@
+stmt:0000.png...0099.png
+mtmt:0000_0.png 0000_1.png 0000_2.png 0000_3.png...# 4 down_ratio
+--------1.转换为multi scale----------
+python convert_blender_data.py --blender_dir ./tandt/train/ --out_dir multi-scale/train
+# 需要transforms_.json
+--------2.训练----------
+python scripts/run_nerf_synthetic_stmt.py
+# 指令合集
+python train.py -s tandt/train_low_4 -m benchmark_nerf_synthetic_ours_stmt/train_low_4 --eval --white_background --port 6209 --kernel_size 0.1
+python render.py -m benchmark_nerf_synthetic_ours_stmt\train_low_4 --skip_train
+python metrics.py -m benchmark_nerf_synthetic_ours_stmt\train_low_4
+# mtmt增加部分
+--load_allres --sample_more_highres
+------------------------
+# dataset_dir = "tandt"
+# scenes = ["train_low_3","train_low_4"]
+python scripts/run_nerf_synthetic_mtmt.py
+# dataset_dir = "mutiscale"
+# scenes = ["train_multi"]
+--------3.render到指定HR----------
+python render.py -m ./benchmark_nerf_synthetic_ours_stmt/train_low_2
+# 在gaussian_render里面改H,W为高清
