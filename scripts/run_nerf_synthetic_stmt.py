@@ -5,28 +5,36 @@ from concurrent.futures import ThreadPoolExecutor
 import queue
 import time
 
-scenes = ["ship", "drums", "ficus", "hotdog", "lego", "materials", "mic", "chair"]
+# scenes = ["ship", "drums", "ficus", "hotdog", "lego", "materials", "mic", "chair"]
+# scenes = ["train"]
+scenes = ["train_low_3","train_low_4"]
+
 factors = [1] * len(scenes)
 
 output_dir = "benchmark_nerf_synthetic_ours_stmt"
-dataset_dir = "multi-scale"
+# dataset_dir = "multi-scale"
+dataset_dir = "tandt"
+
 
 dry_run = False
 
 jobs = list(zip(scenes, factors))
 
 def train_scene(gpu, scene, factor):
-    cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python train.py -s {dataset_dir}/{scene} -m {output_dir}/{scene} --eval --white_background --port {6209+int(gpu)} --kernel_size 0.1"
+    # cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python train.py -s {dataset_dir}/{scene} -m {output_dir}/{scene} --eval --white_background --port {6209+int(gpu)} --kernel_size 0.1"
+    cmd = f"set OMP_NUM_THREADS=4 && set CUDA_VISIBLE_DEVICES={gpu} && python train.py -s {dataset_dir}/{scene} -m {output_dir}/{scene} --eval --white_background --port {6209+int(gpu)} --kernel_size 0.1"
     print(cmd)
     if not dry_run:
         os.system(cmd)
 
-    cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render.py -m {output_dir}/{scene} --skip_train"
+    # cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render.py -m {output_dir}/{scene} --skip_train"
+    cmd = f"set OMP_NUM_THREADS=4 && set CUDA_VISIBLE_DEVICES={gpu} && python render.py -m {output_dir}\\{scene} --skip_train"       
     print(cmd)
     if not dry_run:
         os.system(cmd)
         
-    cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python metrics.py -m {output_dir}/{scene}"
+    # cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python metrics.py -m {output_dir}/{scene}"
+    cmd = f"set OMP_NUM_THREADS=4 && set CUDA_VISIBLE_DEVICES={gpu} && python metrics.py -m {output_dir}\\{scene}"
     print(cmd)
     if not dry_run:
         os.system(cmd)
