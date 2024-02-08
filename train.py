@@ -11,7 +11,7 @@
 
 import os
 import numpy as np
-import open3d as o3d
+# import open3d as o3d
 import cv2
 import torch
 import random
@@ -156,6 +156,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if iteration < opt.densify_until_iter:
                 # Keep track of max radii in image-space for pruning
                 gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
+                # print(visibility_filter.size())
+                # print(gaussians.max_radii2D.size())
+                # print(radii.size())
+                # print(gaussians.max_radii2D[visibility_filter].size())
                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:

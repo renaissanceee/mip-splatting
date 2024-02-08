@@ -96,11 +96,18 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
 
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
         image_name = os.path.basename(image_path).split(".")[0]
-        image = Image.open(image_path)
-
-        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
-                              image_path=image_path, image_name=image_name, width=width, height=height)
-        cam_infos.append(cam_info)
+        # './benchmark_360v2_ours_stmt/bicycle/pseudo_gt/resize_x8/images/_DSC8679.JPG'
+        if os.path.isfile(image_path):
+            image = Image.open(image_path)
+            cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+                                  image_path=image_path, image_name=image_name, width=width, height=height)
+            cam_infos.append(cam_info)
+        elif os.path.isfile(image_path.replace("JPG","png")):
+            image_path = image_path.replace("JPG","png")
+            image = Image.open(image_path)
+            cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
+                                  image_path=image_path, image_name=image_name, width=width, height=height)
+            cam_infos.append(cam_info)
     sys.stdout.write('\n')
     return cam_infos
 
