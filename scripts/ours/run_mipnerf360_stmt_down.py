@@ -25,13 +25,13 @@ def train_scene(gpu, scene, factor):
     trained_gaussian = os.path.join(get_folder, scene, "point_cloud/iteration_30000/point_cloud.ply")# "./fused/"+scene+"_fused_x1.ply"
     for scale in [8, 4, 2, 1]:
         pseudo_gt = os.path.join(get_folder, scene, "pseudo_gt/resize_x" + str(scale))
-        print(pseudo_gt)
-        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python train_two_stage.py -s {pseudo_gt} -m {output_dir}/{scene} -r 1 --port {5009 + int(gpu)} --kernel_size 0.1 --load_gaussian {trained_gaussian}"
+        model_path= os.path.join(output_dir,scene,"resize_x"+str(scale))
+        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python train_two_stage.py -s {pseudo_gt} -m {model_path} -r 1 --port {5009 + int(gpu)} --kernel_size 0.1 --load_gaussian {trained_gaussian}"
         print(cmd)
         if not dry_run:
             os.system(cmd)
 
-        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render_ours.py -m {output_dir}/{scene} -r 1 --data_device cpu --skip_train"
+        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render_ours.py -m {model_path} -r 1 --data_device cpu --skip_train"
         print(cmd)
         if not dry_run:
             os.system(cmd)
