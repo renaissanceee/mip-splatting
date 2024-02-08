@@ -31,7 +31,7 @@ def train_scene(gpu, scene, factor):
         if not dry_run:
             os.system(cmd)
 
-        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render_ours.py -m {model_path} -r 1 --data_device cpu --skip_train"
+        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render_ours.py -m {model_path} --scale {scale} -r 1 --data_device cpu --skip_train"
         print(cmd)
         if not dry_run:
             os.system(cmd)

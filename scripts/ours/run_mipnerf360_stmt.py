@@ -21,7 +21,7 @@ jobs = list(zip(scenes, factors))
 
 def train_scene(gpu, scene, factor):
     get_folder = "/cluster/work/cvl/jiezcao/jiameng/mip-splatting/benchmark_360v2_ours_stmt/"
-    trained_gaussian = os.path.join(get_folder, scene, "point_cloud/iteration_30000/point_cloud.ply")# "./fused/"+scene+"_fused_x1.ply"
+    trained_gaussian = os.path.join(get_folder, scene, "point_cloud/iteration_30000/point_cloud.ply") # "./fused/"+scene+"_fused_x1.ply"
     for scale in [8, 4, 2, 1]:
         pseudo_gt = os.path.join(get_folder, scene, "pseudo_gt/resize_x" + str(scale))
         model_path= os.path.join(output_dir,scene,"resize_x"+str(scale))
@@ -30,7 +30,7 @@ def train_scene(gpu, scene, factor):
         if not dry_run:
             os.system(cmd)
 
-        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render_ours.py -m {model_path} -r 1 --data_device cpu --skip_train"
+        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render_ours.py -m {model_path} --scale {scale} -r 1 --data_device cpu --skip_train"
         print(cmd)
         if not dry_run:
             os.system(cmd)

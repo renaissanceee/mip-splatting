@@ -23,13 +23,14 @@ from gaussian_renderer import GaussianModel
 from PIL import Image
 from torchvision import transforms
 
-def render_set(model_path, name, iteration, views, gaussians, pipeline, background, kernel_size, scale_factor):
+def render_set(model_path, name, iteration, views, gaussians, pipeline, background, kernel_size, scale_factor,scale):
     render_path = os.path.join(model_path, name, "ours_{}".format(iteration), f"test_preds_{scale}")
     gts_path = os.path.join(model_path, name, "ours_{}".format(iteration), f"gt_{scale}")
-    # 360v2_ours_stmt_resize/bicycle/resize_x1/ -> benchmark_360v2_ours_stmt/bicycle/test/ours_30000/gt_
-    gt_folder = gts_path.replace("360v2","benchmark_360v2")
-    gt_folder = gt_folder.replace("_resize", "")
-    gt_folder = gt_folder.replace("resuze_x", "gt_")
+    # benchmark_360v2_ours_stmt/bicycle/test/ours_30000/gt_8
+    parts = model_path.split('/')
+    scene = parts[1]
+    gt_folder = os.path.join("benchmark_360v2_ours_stmt",scene, name, "ours_{}".format(iteration), f"gt_{scale}")
+
     print(gt_folder)
     
     makedirs(render_path, exist_ok=True)
@@ -47,7 +48,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         torchvision.utils.save_image(rendering, os.path.join(render_path, view.image_name + ".png"))
         torchvision.utils.save_image(gt, os.path.join(gts_path, view.image_name + ".png"))
 
-def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, skip_train : bool, skip_test : bool, scale: int):
+def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, skip_train : bool, skip_test : bool, scale:int):
     with torch.no_grad():
         gaussians = GaussianModel(dataset.sh_degree)
         scene = Scene(dataset, gaussians, load_iteration=iteration, shuffle=False)
@@ -55,7 +56,7 @@ def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParam
         bg_color = [1,1,1] if dataset.white_background else [0, 0, 0]
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
         kernel_size = dataset.kernel_size
-        render_set(dataset.model_path, "test", scene.loaded_iter, scene.getTrainCameras(), gaussians, pipeline, background, kernel_size, scale_factor=scale_factor)
+        render_set(dataset.model_path, "test", scene.loaded_iter, scene.getTrainCameras(), gaussians, pipeline, background, kernel_size, scale_factor=scale_factor,scale=scale)
 
 
 if __name__ == "__main__":
@@ -67,11 +68,11 @@ if __name__ == "__main__":
     parser.add_argument("--skip_train", action="store_true")
     parser.add_argument("--skip_test", action="store_true")
     parser.add_argument("--quiet", action="store_true")
-    # parser.add_argument("--scale", default=-1, type=int)
+    parser.add_argument("--scale", default=-1, type=int)
     args = get_combined_args(parser)
     print("Rendering " + args.model_path)
 
     # Initialize system state (RNG)
     safe_state(args.quiet)
 
-    render_sets(model.extract(args), args.iteration, pipeline.extract(args), args.skip_train, args.skip_test)
+    render_sets(model.extract(args), args.iteration, pipeline.extract(args), args.skip_train, args.skip_test, args.scale)
