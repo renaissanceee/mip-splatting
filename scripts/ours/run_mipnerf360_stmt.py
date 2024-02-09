@@ -9,7 +9,7 @@ import time
 # scenes = ["bicycle", "bonsai", "counter", "flowers", "garden", "stump", "treehill", "kitchen", "room"]
 # factors = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 scenes = ["bicycle", "bonsai", "counter", "garden", "stump", "kitchen", "room"]#remove flowers, treehill
-factors = [1, 1, 1, 1, 1, 1, 1]
+factors = [8, 8, 8, 8, 8, 8, 8]
 
 excluded_gpus = set([])
 

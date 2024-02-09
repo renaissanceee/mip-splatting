@@ -6,30 +6,24 @@ from concurrent.futures import ThreadPoolExecutor
 import queue
 import time
 
-# scenes = ["bicycle", "bonsai", "counter", "flowers", "garden", "stump", "treehill", "kitchen", "room"]
-# factors = [1, 1, 1, 1, 1, 1, 1, 1, 1]#remove flowers, treehill
-scenes = ["bicycle", "bonsai", "counter", "garden", "stump", "kitchen", "room"]
+
+scenes = ["bicycle", "bonsai", "counter", "garden", "stump", "kitchen", "room"]#remove flowers, treehill
 factors = [1, 1, 1, 1, 1, 1, 1]
 
 excluded_gpus = set([])
 
-output_dir = "360v2_ours_stmt_resize_down"
+output_dir = "360v2_ours_stmt_down_resize"
 
 dry_run = False
 
 jobs = list(zip(scenes, factors))
 
-
 def train_scene(gpu, scene, factor):
-    get_folder = "/cluster/work/cvl/jiezcao/jiameng/mip-splatting/benchmark_360v2_ours_stmt_down/"
-    trained_gaussian = os.path.join(get_folder, scene, "point_cloud/iteration_30000/point_cloud.ply")# "./fused/"+scene+"_fused_x1.ply"
+    get_folder = "/cluster/work/cvl/jiezcao/jiameng/mip-splatting/benchmark_360v2_ours_stmt/"
+    trained_gaussian = os.path.join(get_folder, scene, "point_cloud/iteration_30000/point_cloud.ply") # "./fused/"+scene+"_fused_x1.ply"
     for scale in [8, 4, 2, 1]:
         pseudo_gt = os.path.join(get_folder, scene, "pseudo_gt/resize_x" + str(scale))
         model_path= os.path.join(output_dir,scene,"resize_x"+str(scale))
-        cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python train_two_stage.py -s {pseudo_gt} -m {model_path} -r 1 --port {5009 + int(gpu)} --kernel_size 0.1 --load_gaussian {trained_gaussian}"
-        print(cmd)
-        if not dry_run:
-            os.system(cmd)
 
         cmd = f"OMP_NUM_THREADS=4 CUDA_VISIBLE_DEVICES={gpu} python render_ours.py -m {model_path} --scale {scale} -r 1 --data_device cpu --skip_train"
         print(cmd)
@@ -37,7 +31,6 @@ def train_scene(gpu, scene, factor):
             os.system(cmd)
 
     return True
-
 
 def worker(gpu, scene, factor):
     print(f"Starting job on GPU {gpu} with scene {scene}\n")
@@ -49,7 +42,7 @@ def worker(gpu, scene, factor):
 def dispatch_jobs(jobs, executor):
     future_to_job = {}
     reserved_gpus = set()  # GPUs that are slated for work but may not be active yet
-
+    print(jobs)
     while jobs or future_to_job:
         # Get the list of available GPUs, not including those that are reserved.
         all_available_gpus = set(GPUtil.getAvailable(order="first", limit=10, maxMemory=0.1))
@@ -71,7 +64,7 @@ def dispatch_jobs(jobs, executor):
             job = future_to_job.pop(future)  # Remove the job associated with the completed future
             gpu = job[0]  # The GPU is the first element in each job tuple
             reserved_gpus.discard(gpu)  # Release this GPU
-            print(f"Job {job} has finished., rellasing GPU {gpu}")
+            print(f"Job {job} has finished., releasing GPU {gpu}")
         # (Optional) You might want to introduce a small delay here to prevent this loop from spinning very fast
         # when there are no GPUs available.
         time.sleep(5)
