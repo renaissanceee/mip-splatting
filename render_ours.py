@@ -27,9 +27,12 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
     render_path = os.path.join(model_path, name, "ours_{}".format(iteration), f"test_preds_{scale}")
     gts_path = os.path.join(model_path, name, "ours_{}".format(iteration), f"gt_{scale}")
     # benchmark_360v2_ours_stmt/bicycle/test/ours_30000/gt_8
+    # 
     parts = model_path.split('/')
+    root = parts[0].replace("360v2","benchmark_360v2")
+    root = root.replace("_resize","")
     scene = parts[1]
-    gt_folder = os.path.join(parts[0].replace("360v2","benchmark_360v2"),scene, name, "ours_{}".format(iteration), f"gt_{scale}"))
+    gt_folder = os.path.join(root ,scene, name, "ours_{}".format(iteration), f"gt_{scale}")
 
     print(gt_folder)
     
