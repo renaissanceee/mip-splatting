@@ -10,6 +10,7 @@
 #
 
 import os
+import re
 import sys
 from PIL import Image
 from typing import NamedTuple
@@ -103,8 +104,12 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
                                   image_path=image_path, image_name=image_name, width=width, height=height)
             cam_infos.append(cam_info)
         elif os.path.isfile(image_path.replace("JPG","png")):
-            print(image_path)
             image_path = image_path.replace("JPG","png")
+            "down_sampl gt"
+            # match = re.search(r'resize_x(\d+)', image_path)
+            # resized_factor = str(match.group(1))
+            # image_path = image_path.replace("resize_x"+resized_factor,"resize_x8")
+            "original_resized gt"
             image = Image.open(image_path)
             cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
                                   image_path=image_path, image_name=image_name, width=width, height=height)
