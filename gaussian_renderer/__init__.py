@@ -15,7 +15,7 @@ from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianR
 from scene.gaussian_model import GaussianModel
 from utils.sh_utils import eval_sh
 
-def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, kernel_size: float, scaling_modifier = 1.0, override_color = None, subpixel_offset=None, scale=None):
+def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, kernel_size: float, scaling_modifier = 1.0, override_color = None, subpixel_offset=None):
     """
     Render the scene. 
     
@@ -36,11 +36,11 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
     if subpixel_offset is None:
         subpixel_offset = torch.zeros((int(viewpoint_camera.image_height), int(viewpoint_camera.image_width), 2), dtype=torch.float32, device="cuda")
         
-    if scale:
-        viewpoint_camera.image_height = viewpoint_camera.image_height //scale
-        viewpoint_camera.image_width = viewpoint_camera.image_width //scale
-        print(int(viewpoint_camera.image_height))
-        print(int(viewpoint_camera.image_width))
+    # if scale:
+    #     viewpoint_camera.image_height = viewpoint_camera.image_height //scale
+    #     viewpoint_camera.image_width = viewpoint_camera.image_width //scale
+    #     print(int(viewpoint_camera.image_height))
+    #     print(int(viewpoint_camera.image_width))
         
     raster_settings = GaussianRasterizationSettings(
         image_height=int(viewpoint_camera.image_height),
